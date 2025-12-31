@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">retro-app</string>
+    <string name="title_activity_main">retro-app</string>
+    <string name="package_name">com.retro.app</string>
+    <string name="custom_url_scheme">com.retro.app</string>
+</resources>
