@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import "./Home.css";
-import { addRetroItem, fetchRetroItems, RetroItem } from "../services/SupabaseApi";
+import { apiHandler } from "../services/ApiHandler";
+import { TableTypes } from "../common/constant";
 
 export default function Home() {
-  const [items, setItems] = useState<RetroItem[]>([]);
+  const [items, setItems] = useState<TableTypes<'retro'>[]>([]);
   const [darkMode, setDarkMode] = useState(false);
   const [inputs, setInputs] = useState<{ [key: string]: string }>({
     "Went Well": "",
@@ -15,7 +16,7 @@ export default function Home() {
 
   // Load items
   const loadItems = async () => {
-    const data = await fetchRetroItems();
+    const data = await apiHandler.getAll();
     setItems(data);
   };
 
@@ -24,7 +25,7 @@ export default function Home() {
     const content = inputs[category].trim();
     if (!content) return;
 
-    const success = await addRetroItem(content, category);
+    const success = await apiHandler.add(content, category);
     if (success) {
       setInputs((prev) => ({ ...prev, [category]: "" }));
       loadItems();
