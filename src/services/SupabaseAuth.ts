@@ -28,6 +28,7 @@ export const useSession = () => {
 
   useEffect(() => {
     const initSession = async () => {
+      const params = new URLSearchParams(window.location.search);
       const code = params.get("code");
 
       // Ensure OAuth callback code is exchanged before route redirects remove query params.
