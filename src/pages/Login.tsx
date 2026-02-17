@@ -1,26 +1,55 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { signInWithGoogle, useSession } from "../services/SupabaseAuth";
-import { PAGES } from "../common/constant";
+import { useState } from "react";
+import {
+  signInWithGoogle,
+  signInWithEmailLink,
+  signInWithEmailPassword,
+  signInWithPhoneOtp,
+} from "../services/SupabaseAuth";
 import "./Login.css";
 
 type Method = "email" | "password" | "mobile" | "google";
 
 export default function Login() {
   const [method, setMethod] = useState<Method>("google");
-  const { session } = useSession();
-  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    console.log("session",session);
-    if (session) {
-      navigate(PAGES.HOME, { replace: true });
+  const handleEmailLink = async () => {
+    setMessage("");
+    const value = email.trim();
+    if (!value) {
+      setMessage("Enter your email address.");
+      return;
     }
-  }, [session, navigate]);
+    const { error } = await signInWithEmailLink(value);
+    setMessage(error ? error.message : "Magic link sent. Check your inbox.");
+  };
+
+  const handleEmailPassword = async () => {
+    setMessage("");
+    if (!email.trim() || !password) {
+      setMessage("Enter both email and password.");
+      return;
+    }
+    const { error } = await signInWithEmailPassword(email.trim(), password);
+    if (error) setMessage(error.message);
+  };
+
+  const handlePhoneOtp = async () => {
+    setMessage("");
+    const value = phone.trim();
+    if (!value) {
+      setMessage("Enter your mobile number.");
+      return;
+    }
+    const { error } = await signInWithPhoneOtp(value);
+    setMessage(error ? error.message : "OTP sent to your phone.");
+  };
 
   return (
     <div className="auth-wrapper">
-
       <div className="auth-left">
         <div className="brand">
           <h1>Retro App</h1>
@@ -34,14 +63,33 @@ export default function Login() {
           <p className="auth-sub">Choose a login method</p>
 
           <div className="auth-methods">
-            <button className={method === "google" ? "active" : ""} onClick={() => setMethod("google")}>Google</button>
-            <button className={method === "email" ? "active" : ""} onClick={() => setMethod("email")}>Email Link</button>
-            <button className={method === "password" ? "active" : ""} onClick={() => setMethod("password")}>Email + Password</button>
-            <button className={method === "mobile" ? "active" : ""} onClick={() => setMethod("mobile")}>Mobile</button>
+            <button
+              className={method === "google" ? "active" : ""}
+              onClick={() => setMethod("google")}
+            >
+              Google
+            </button>
+            <button
+              className={method === "email" ? "active" : ""}
+              onClick={() => setMethod("email")}
+            >
+              Email Link
+            </button>
+            <button
+              className={method === "password" ? "active" : ""}
+              onClick={() => setMethod("password")}
+            >
+              Email + Password
+            </button>
+            <button
+              className={method === "mobile" ? "active" : ""}
+              onClick={() => setMethod("mobile")}
+            >
+              Mobile
+            </button>
           </div>
 
           <div className="auth-body">
-
             {method === "google" && (
               <button className="auth-google-btn" onClick={signInWithGoogle}>
                 Continue with Google
@@ -50,26 +98,56 @@ export default function Login() {
 
             {method === "email" && (
               <>
-                <input className="auth-input" placeholder="Email address" />
-                <button className="auth-btn-primary">Send Magic Link</button>
+                <input
+                  className="auth-input"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <button className="auth-btn-primary" onClick={handleEmailLink}>
+                  Send Magic Link
+                </button>
               </>
             )}
 
             {method === "password" && (
               <>
-                <input className="auth-input" placeholder="Email" />
-                <input className="auth-input" placeholder="Password" type="password" />
-                <button className="auth-btn-primary">Login</button>
+                <input
+                  className="auth-input"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <input
+                  className="auth-input"
+                  placeholder="Password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  className="auth-btn-primary"
+                  onClick={handleEmailPassword}
+                >
+                  Login
+                </button>
               </>
             )}
 
             {method === "mobile" && (
               <>
-                <input className="auth-input" placeholder="Mobile number" />
-                <button className="auth-btn-primary">Send OTP</button>
+                <input
+                  className="auth-input"
+                  placeholder="Mobile number"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+                <button className="auth-btn-primary" onClick={handlePhoneOtp}>
+                  Send OTP
+                </button>
               </>
             )}
-
+            {message && <p className="auth-footer">{message}</p>}
           </div>
 
           <p className="auth-footer">
@@ -77,7 +155,6 @@ export default function Login() {
           </p>
         </div>
       </div>
-
     </div>
   );
 }

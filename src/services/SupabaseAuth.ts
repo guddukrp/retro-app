@@ -27,11 +27,26 @@ export const useSession = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) syncUserProfile(session);
+    const initSession = async () => {
+      const code = params.get("code");
+
+      // Ensure OAuth callback code is exchanged before route redirects remove query params.
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+          console.error("OAuth code exchange failed:", error);
+        } else {
+          window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.hash}`);
+        }
+      }
+
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+      if (data.session) syncUserProfile(data.session);
       setLoading(false);
-    });
+    };
+
+    initSession();
 
     const {
       data: { subscription },
@@ -65,13 +80,41 @@ export const signInWithGoogle = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin,
+      redirectTo: `${window.location.origin}/`,
       queryParams: {
         prompt: "select_account",
       },
     },
   });
   if (error) console.error('Google login error:', error);
+  return { error };
+};
+
+export const signInWithEmailLink = async (email: string) => {
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: `${window.location.origin}/`,
+    },
+  });
+  if (error) console.error("Email link login error:", error);
+  return { error };
+};
+
+export const signInWithEmailPassword = async (email: string, password: string) => {
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  if (error) console.error("Email/password login error:", error);
+  return { error };
+};
+
+export const signInWithPhoneOtp = async (phone: string) => {
+  const { error } = await supabase.auth.signInWithOtp({
+    phone,
+  });
+  if (error) console.error("Phone OTP login error:", error);
   return { error };
 };
 

@@ -1,12 +1,14 @@
-import { Constants, Database } from "../services/database";
+import { Retro } from "../models/retro";
+import { User } from "../models/user";
 
 export const PAGES = {
   HOME: "/home",
   LOGIN: "/login",
 };
 
-export type TableTypes<T extends keyof Database["public"]["Tables"]> =
-  Database["public"]["Tables"][T]["Row"];
+type TableMap = {
+  retro: Retro;
+  user: User;
+};
 
-export type EnumType<K extends keyof (typeof Constants)["public"]["Enums"]> =
-  (typeof Constants)["public"]["Enums"][K][number];
+export type TableTypes<T extends keyof TableMap> = TableMap[T];
